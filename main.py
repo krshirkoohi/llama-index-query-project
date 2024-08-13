@@ -37,7 +37,7 @@ async def query_index(
     query_engine = index.as_query_engine()
     response = query_engine.query(query)
     
-    return {"response": response}
+    return {"response": response} # need to return text of response parameter only
 
 @app.get("/")
 def read_root():
