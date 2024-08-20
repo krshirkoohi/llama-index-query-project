@@ -1,14 +1,7 @@
-import os
-import sys
-import logging
-import shutil
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Form, UploadFile, File, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from typing import Optional, List
-from pydantic import BaseModel
-from llama_index.llms.openai import OpenAI
+from llama_index.llms import openai
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core import (
     SimpleDirectoryReader,
@@ -18,168 +11,114 @@ from llama_index.core import (
     load_index_from_storage,
     Settings
 )
-from llama_index.core.storage.docstore import SimpleDocumentStore
+import os
+import re
+from typing import List
+import shutil
 
-# Set up logging
-log = logging.getLogger(__name__)
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-log.info("Logger initialized successfully")
-
-# Load environment variables
-load_dotenv()
-default_key = os.getenv("OPENAI_API_KEY")
-
-# Initialize FastAPI app
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="./static"), name="static")
 
-# Directory to store uploaded files
-UPLOAD_DIR = "./data"
-INDEX_DIR = "./storage"
-for dir in [UPLOAD_DIR, INDEX_DIR]:
-    if os.path.exists(dir):
-        shutil.rmtree(dir)  
-    os.makedirs(dir, exist_ok=True)
+# Setup directories
+DATA_DIR = './data'
+INDEX_DIR = './storage'
+#ROOT_DIR = './static'
+for dir in [DATA_DIR, INDEX_DIR]:
+    if not os.path.exists(dir):
+        os.mkdir(dir)
 
-# Global variables
+# Global variable to store the index and chat engine
 index = None
+chat_engine = None
 
-class LangModel(BaseModel):
-    model: Optional[str] = "openai"
-    key: Optional[str] = default_key  # Default to the environment variable
+def clean_text(text: str) -> str:
+    return re.sub(r'\s+', ' ', text)
 
-class Message(BaseModel):
-    sender: str
-    message: str
+# web page
+app.mount("/static", StaticFiles(directory="static"), name="static")
+def clear_directory(directory: str):
+    if os.path.exists(directory):
+        shutil.rmtree(directory)  # Remove the directory and all its contents
+        os.makedirs(directory)  # Recreate the empty directory
+@app.get("/")
+async def root():
+    # Clear the contents of the data and storage directories
+    clear_directory(DATA_DIR)
+    clear_directory(INDEX_DIR)
+    
+    # Redirect to the static HTML page
+    return RedirectResponse(url="/static/main.html")
 
-class Conversation(BaseModel):
-    conversation: List[Message]
+# openai key
+@app.post("/set_openai_key")
+async def set_openai_key(api_key: dict):
+    if 'api_key' not in api_key or not api_key['api_key']:
+        raise HTTPException(status_code=400, detail="API key is required.")
+    
+    os.environ["OPENAI_API_KEY"] = api_key['api_key']
+    return {"message": "OpenAI API key set successfully."}
 
-@app.on_event("startup")
-async def startup_event():
-    log.info("Startup complete: Ready to accept requests.")
+@app.post("/upload/")
+async def upload_files(files: List[UploadFile] = File(...)):
+    global index, chat_engine
+    documents = []
 
-@app.get("/", response_class=RedirectResponse)
-async def redirect_to_main_page():
-    return RedirectResponse(url="/static/interactive_pdf_chat.html")
+    for file in files:
+        file_path = os.path.join(DATA_DIR, file.filename)
+        with open(file_path, 'wb') as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-@app.post("/upload_pdf")
-async def upload_pdf(file: UploadFile = File(...), model: str = Form(...), openai_key: Optional[str] = Form(None)):
-    global index
+        reader = SimpleDirectoryReader(input_dir=DATA_DIR, recursive=True)
+        reader_data = reader.iter_data()
+
+        for docs in reader_data:
+            for doc in docs:
+                cleaned_doc = Document(text=clean_text(doc.text), metadata={"source": doc.metadata["file_name"]})
+                documents.append(cleaned_doc)
+
+    # Index the documents
     try:
-        # Check if the file already exists
-        file_path = os.path.join(UPLOAD_DIR, file.filename)
-        if os.path.exists(file_path):
-            log.info(f"File {file.filename} already exists.")
-            return JSONResponse(status_code=400, content={"message": "File already uploaded!"})
-
-        # Set the selected model
-        if model == 'openai':
-            if openai_key:
-                os.environ["OPENAI_API_KEY"] = openai_key
-            elif default_key:
-                os.environ["OPENAI_API_KEY"] = default_key
-            else:
-                return JSONResponse(status_code=400, content={"message": "OpenAI API key is required. Please enter a valid key."})
-            Settings.embed_model = OpenAI()
-            log.info(f"OpenAI model set with provided key.")
-        else:
-            Settings.embed_model = HuggingFaceEmbedding(model_name=model)
-            log.info(f"Model set to {model}")
-
-        # Save the uploaded PDF file
-        with open(file_path, "wb") as f:
-            f.write(await file.read())
-        log.info(f"File {file.filename} uploaded successfully.")
-
-        # Process the PDF to create documents
-        reader = SimpleDirectoryReader(input_files=[file_path])
-        documents = reader.load_data()
-
-        # Add metadata to documents and log the content
-        for doc in documents:
-            doc.metadata["source"] = file.filename
-            log.info(f"Document created with text: {doc.text[:100]}... and metadata: {doc.metadata}")
-
-        # Load existing documents from storage
-        all_documents = []
-        if os.path.exists(INDEX_DIR):
-            for doc_file in os.listdir(INDEX_DIR):
-                if doc_file.endswith(".txt"):
-                    with open(os.path.join(INDEX_DIR, doc_file), 'r') as f:
-                        text = f.read()
-                        doc_name = os.path.splitext(doc_file)[0]  # remove '.txt' from filename
-                        all_documents.append(Document(text=text, metadata={"source": doc_name}))
-                        log.info(f"Loaded existing document: {doc_name} with content: {text[:100]}...")
-
-        # Add new documents to the list
-        all_documents.extend(documents)
-
-        # Rebuild the index with all documents
-        index = VectorStoreIndex.from_documents(all_documents)
-        log.info(f"Index rebuilt with documents: {[doc.metadata['source'] for doc in all_documents]}")
-
-        # Save new documents for future use
-        for doc in documents:
-            doc_name = f"{doc.metadata['source']}.txt"
-            with open(os.path.join(INDEX_DIR, doc_name), 'w') as f:
-                f.write(doc.text)
-
-        return JSONResponse(content={"message": f"File {file.filename} uploaded and indexed successfully."})
-
+        service_context = ServiceContext.from_defaults(embed_model="local:BAAI/bge-small-en-v1.5")
+        index = VectorStoreIndex.from_documents(documents, service_context=service_context)
     except Exception as e:
-        log.error(f"Failed to upload and index file: {file.filename}. Error: {str(e)}")
-        return JSONResponse(status_code=500, content={"message": f"Failed to upload and index file: {file.filename}. Error: {str(e)}"})
+        raise HTTPException(status_code=500, detail=f"Indexing failed: {str(e)}")
 
-@app.post("/chat")
-async def chat(conversation: Conversation):
-    global index
-    try:
-        if not index:
-            raise HTTPException(status_code=400, detail="No PDF has been uploaded and processed yet.")
+    index.storage_context.persist()
+    chat_engine = index.as_chat_engine()
 
-        # Extract the last user message to generate a response
-        last_user_message = conversation.conversation[-1].message
-        log.info(f"Received message: {last_user_message}")
+    return {"message": "Files uploaded and indexed successfully."}
 
-        # Use the chat engine to query the index
-        chat_engine = index.as_chat_engine()
-        response = chat_engine.query(last_user_message)
-        log.info(f"Generated response: {response.response}")
+from pydantic import BaseModel
 
-        # Initialize a set for sources
-        sources = set()
+class ChatRequest(BaseModel):
+    query: str
 
-        # Heuristic to determine if the response genuinely uses indexed documents
-        relevant_sources_found = False
+@app.post("/chat/")
+async def chat(request: ChatRequest):
+    if chat_engine is None:
+        raise HTTPException(status_code=400, detail="No documents indexed. Please upload files first.")
+    
+    # Generate the response from the chat engine
+    response = chat_engine.chat(request.query)
+    
+    # Extract the response text and sources
+    response_text = response.response  # Assuming response object has 'response' attribute
+    sources = response.source_nodes if hasattr(response, 'source_nodes') else []
 
-        for source in response.source_nodes:
-            log.info(f"Source node metadata: {source.node.metadata}")
-            source_text = source.node.text.strip()
-
-            # Check if the response contains a significant match with the source text
-            if source_text in response.response:
-                sources.add(source.node.metadata["source"])
-                relevant_sources_found = True
-            elif any(keyword in response.response for keyword in source_text.split()[:5]):
-                sources.add(source.node.metadata["source"])
-                relevant_sources_found = True
-
-        # Prepare the response message
-        response_message = {"response": response.response}
-
-        if relevant_sources_found:
-            # Only include sources if they were actually relevant to the response
-            response_message["sources"] = f"Sources: {', '.join(sources)}"
-        else:
-            log.info("No relevant sources found in response; omitting sources from display.")
-
-        return JSONResponse(content=response_message)
-
-    except Exception as e:
-        log.error(f"Error querying index: {str(e)}")
-        return JSONResponse(status_code=500, content={"message": f"Failed to query PDF content. Error: {str(e)}"})
+    # Use a set to remove duplicate sources
+    unique_sources = set()
+    for source in sources:
+        document_name = source.node.metadata.get("source", "Unknown Document")
+        unique_sources.add(document_name)
+    
+    # Format the sources to include in the response
+    if unique_sources:
+        source_documents = ', '.join(unique_sources)
+        full_response = {"response": response_text, "sources": f"{source_documents}"}
+    else:
+        full_response = {"response": response_text}
+    
+    return full_response
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="localhost", port=8000)

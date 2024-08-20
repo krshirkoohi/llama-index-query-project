@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Chat Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .upload-section, .chat-section {
+            margin-bottom: 30px;
+        }
+        input[type="file"], select, input[type="text"] {
+            display: block;
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            height: 200px;
+            overflow-y: scroll;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+        }
+        .chat-message.user {
+            text-align: right;
+            font-weight: bold;
+        }
+        .chat-message.bot {
+            text-align: left;
+            font-style: italic;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+        #api-key-container {
+            display: none;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Document Chat Interface</h1>
+        
+        <div class="upload-section">
+            <h2>Select Model and Upload Documents</h2>
+            <form id="model-form">
+                <label for="model-select">Choose a Model:</label>
+                <select id="model-select" required>
+                    <option value="">Select a model</option>
+                    <option value="BAAI/bge-small-en">BAAI/bge-small-en</option>
+                    <option value="BAAI/bge-small-en-v1.5">BAAI/bge-small-en-v1.5</option>
+                    <option value="BAAI/bge-base-en-v1.5">BAAI/bge-base-en-v1.5</option>
+                    <option value="multi-qa-MiniLM-L6-cos-v1">multi-qa-MiniLM-L6-cos-v1</option>
+                    <option value="openai">OpenAI</option>
+                </select>
+
+                <div id="api-key-container">
+                    <label for="api-key">OpenAI API Key:</label>
+                    <input type="text" id="api-key" placeholder="Enter OpenAI API Key">
+                </div>
+
+                <label for="files">Upload Documents:</label>
+                <input type="file" id="files" name="files" multiple disabled>
+                <button type="submit" id="upload-button" disabled>Upload</button>
+            </form>
+            <div id="upload-status"></div>
+            <h3>Indexed Files:</h3>
+            <ul id="file-list"></ul> <!-- New section for displaying the list of uploaded files -->
+        </div>
+
+        <div class="chat-section">
+            <h2>Chat with Documents</h2>
+            <div id="chat-box" class="chat-box"></div>
+            <form id="chat-form">
+                <input type="text" id="query" placeholder="Type your query..." required disabled>
+                <button type="submit" id="chat-button" disabled>Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modelSelect = document.getElementById('model-select');
+        const apiKeyContainer = document.getElementById('api-key-container');
+        const apiKeyInput = document.getElementById('api-key');
+        const filesInput = document.getElementById('files');
+        const uploadButton = document.getElementById('upload-button');
+        const queryInput = document.getElementById('query');
+        const chatButton = document.getElementById('chat-button');
+        const uploadForm = document.getElementById('model-form');
+        const chatForm = document.getElementById('chat-form');
+        const chatBox = document.getElementById('chat-box');
+        const uploadStatus = document.getElementById('upload-status');
+        const fileList = document.getElementById('file-list'); // Reference to the file list element
+
+        let selectedModel = '';
+
+        // Enable the file input and upload button when a model is selected
+        modelSelect.addEventListener('change', function () {
+            selectedModel = modelSelect.value;
+
+            if (selectedModel === 'openai') {
+                apiKeyContainer.style.display = 'block';
+            } else {
+                apiKeyContainer.style.display = 'none';
+                apiKeyInput.value = '';
+            }
+
+            if (selectedModel) {
+                filesInput.disabled = false;
+                uploadButton.disabled = false;
+            } else {
+                filesInput.disabled = true;
+                uploadButton.disabled = true;
+            }
+        });
+
+        // Handle file uploads and model selection
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (selectedModel === 'openai' && !apiKeyInput.value) {
+                alert('Please enter your OpenAI API key.');
+                return;
+            }
+
+            const files = filesInput.files;
+            if (files.length === 0) {
+                alert('Please upload at least one file.');
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i= 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            try {
+                if (selectedModel === 'openai') {
+                    await fetch('/set_openai_key', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ api_key: apiKeyInput.value }),
+                    });
+                }
+
+                const response = await fetch('/upload/', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const result = await response.json();
+                uploadStatus.innerText = result.message;
+
+                // Add uploaded files to the list
+                for (let i = 0; i < files.length; i++) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = files[i].name;
+                    fileList.appendChild(listItem);
+                }
+
+                // Enable the chat section
+                queryInput.disabled = false;
+                chatButton.disabled = false;
+
+            } catch (error) {
+                console.error('Error uploading files:', error);
+                uploadStatus.innerText = 'Error uploading files. Please try again.';
+            }
+        });
+
+        // Handle chat interaction
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const userMessage = queryInput.value;
+            chatBox.innerHTML += `<div class="chat-message user">${userMessage}</div>`;
+            queryInput.value = '';
+
+            try {
+                const response = await fetch('/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: userMessage }),
+                });
+                const result = await response.json();
+
+                let botMessage = `<strong>Response:</strong> ${result.response}<br>`;
+
+                // Handle sources if they exist
+                if (result.sources) {
+                    botMessage += `<br><strong>Sources: </strong>${result.sources}<br>`;
+                }
+
+                chatBox.innerHTML += `<div class="chat-message bot">${botMessage}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;  // Scroll to the bottom
+            } catch (error) {
+                console.error('Error during chat interaction:', error);
+                chatBox.innerHTML += `<div class="chat-message bot">Error processing request. Please try again.</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
