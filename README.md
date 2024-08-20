@@ -1,30 +1,52 @@
-# Usage
+# Document Chat Interface
 
-## Dependencies
+This project provides a simple interface for interacting with documents using various language models (LLMs). You can upload documents, ask questions about them, and receive answers along with the sources where the information was found.
 
-Please make sure you've installed the following in your execution environment using `pip install`
-`llama_index`, `uvicorn`, `fastapi`
+## Usage
 
-## How to run
+### Dependencies
 
-Run `main.py` on localhost using port 8000
+Please make sure you've installed the following dependencies in your execution environment:
 
-Open `main.html` which will connect to the backend and provide UI for essential functions.
+`pip install llama_index uvicorn fastapi`
 
-You can interact with the backend using the UI in the browser when the HTML page is loaded.
+### How to Run
 
-The directory you cloned this repo to will be used to store documents and indexes generated.
+	1.	Run the Backend:
+	•	Execute main.py to start the FastAPI server on localhost using port 8000.
+	•	Use the following command to run the server:
+uvicorn main:app --host 127.0.0.0 --port 8000
+	2.	Open the UI:
+	•	Open main.html in your web browser. This HTML file will connect to the backend and provide a user interface for interacting with the system’s essential functions.
+	•	The UI allows you to upload documents, ask questions, and see the results, including the sources of the answers.
+	3.	Interact with the Backend:
+	•	Once the HTML page is loaded in your browser, you can interact with the backend using the UI provided.
+	•	You can upload files, ask questions related to the documents, and receive responses along with the documents that contain the relevant information.
 
-Make sure you have a `.env` file in the directory with the environment variable `API_KEY` from your Hugging Face account.
+### Data Storage
 
-## Switching between LLMs
+	•	The directory where you cloned this repository will be used to store uploaded documents and the indexes generated from them. Make sure you have sufficient disk space for storing multiple documents and indexes.
 
-You can use the drop down menu to switch between models.
+### Environment Variables
 
-Adding future models is straightforward: just add them in the selection menu in the HTML code.
+	•	Ensure you have a .env file in the project directory. This file should contain your Hugging Face API key as an environment variable:
+`API_KEY=your_hugging_face_api_key`
 
-Alternatively, a standalone version of this app can be produced where the AI models are simply strings of the names on HuggingFace.
+This key is required to access models hosted on Hugging Face.
 
-Please bear in mind, that not all AI models are suited to this type of problem and some can throw errors or not work at all.
+### Switching Between LLMs
 
+	•	UI Dropdown Menu:
+	•	You can switch between different language models using the dropdown menu in the user interface.
+	•	This allows you to dynamically choose the model that best suits your needs during your session.
+	•	Adding Future Models:
+	•	To add new models, simply update the selection menu in the HTML code (main.html). Add the model name as an option in the dropdown menu.
+	•	For example, add a new <option> tag with the value set to the name of the model.
+	•	Standalone Version:
+	•	If desired, you can produce a standalone version of this app where the AI models are specified directly as strings representing their names on Hugging Face.
 
+Note: Not all AI models are suited to this type of problem, and some may throw errors or not work at all. Experiment with different models to find the best fit for your needs.
+
+## Future Work
+
+Future improvements may include better error handling for models that are not suited to document Q&A, as well as enhancements to the user interface and backend processing to support a wider variety of models and use cases.
