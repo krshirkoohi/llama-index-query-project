@@ -14,38 +14,36 @@ Please make sure you've installed the following dependencies in your execution e
 
 ### How to Run
 
-	1.	Run the Backend:
-	•	Execute `main.py` to start the FastAPI server on localhost using port 8000.
-	•	Use the following command to run the server:
-`uvicorn main:app --host 127.0.0.0 --port 8000`
-	2.	Open the UI:
-	•	Open `main.html` in your web browser. This HTML file will connect to the backend and provide a user interface for interacting with the system’s essential functions.
-	•	The UI allows you to upload documents, ask questions, and see the results, including the sources of the answers.
-	3.	Interact with the Backend:
-	•	Once the HTML page is loaded in your browser, you can interact with the backend using the UI provided.
-	•	You can upload files, ask questions related to the documents, and receive responses along with the documents that contain the relevant information.
+1. Run the Backend:
+	- Execute `main.py` to start the FastAPI server on localhost using port 8000.
+	- Use the following command to run the server: `uvicorn main:app --host 127.0.0.0 --port 8000`
+3. Open the UI:
+	- Open `main.html` in your web browser. This HTML file will connect to the backend and provide a user interface for interacting with the system’s essential functions.
+	- The UI allows you to upload documents, ask questions, and see the results, including the sources of the answers.
+4. Interact with the Backend:
+	- Once the HTML page is loaded in your browser, you can interact with the backend using the UI provided.
+	- You can upload files, ask questions related to the documents, and receive responses along with the documents that contain the relevant information.
 
 ### Data Storage
 
-	•	The directory where you cloned this repository will be used to store uploaded documents and the indexes generated from them. Make sure you have sufficient disk space for storing multiple documents and indexes.
+- The directory where you cloned this repository will be used to store uploaded documents and the indexes generated from them. Make sure you have sufficient disk space for storing multiple documents and indexes.
 
 ### Environment Variables
 
-	•	Ensure you have a .env file in the project directory. This file should contain your Hugging Face API key as an environment variable:
-`API_KEY=your_hugging_face_api_key`
+- Ensure you have a .env file in the project directory. This file should contain your Hugging Face API key as an environment variable: `API_KEY=your_hugging_face_api_key`
 
 This key is required to access models hosted on Hugging Face.
 
 ### Switching Between LLMs
 
-	•	UI Dropdown Menu:
-	•	You can switch between different language models using the dropdown menu in the user interface.
-	•	This allows you to dynamically choose the model that best suits your needs during your session.
-	•	Adding Future Models:
-	•	To add new models, simply update the selection menu in the HTML code (main.html). Add the model name as an option in the dropdown menu.
-	•	For example, add a new <option> tag with the value set to the name of the model.
-	•	Standalone Version:
-	•	If desired, you can produce a standalone version of this app where the AI models are specified directly as strings representing their names on Hugging Face.
+- UI Dropdown Menu:
+- You can switch between different language models using the dropdown menu in the user interface.
+- This allows you to dynamically choose the model that best suits your needs during your session.
+- Adding Future Models:
+- To add new models, simply update the selection menu in the HTML code (main.html). Add the model name as an option in the dropdown menu.
+- For example, add a new <option> tag with the value set to the name of the model.
+- Standalone Version:
+- If desired, you can produce a standalone version of this app where the AI models are specified directly as strings representing their names on Hugging Face.
 
 Note: Not all AI models are suited to this type of problem, and some may throw errors or not work at all. Experiment with different models to find the best fit for your needs.
 
