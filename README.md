@@ -17,10 +17,12 @@ Please make sure you've installed the following dependencies in your execution e
 1. Run the Backend:
 	- Execute `main.py` to start the FastAPI server on localhost using port 8000.
 	- Use the following command to run the server: `uvicorn main:app --host 127.0.0.0 --port 8000`
-3. Open the UI:
+	  
+2. Open the UI:
 	- Open `main.html` in your web browser. This HTML file will connect to the backend and provide a user interface for interacting with the system’s essential functions.
 	- The UI allows you to upload documents, ask questions, and see the results, including the sources of the answers.
-4. Interact with the Backend:
+
+3. Interact with the Backend:
 	- Once the HTML page is loaded in your browser, you can interact with the backend using the UI provided.
 	- You can upload files, ask questions related to the documents, and receive responses along with the documents that contain the relevant information.
 
