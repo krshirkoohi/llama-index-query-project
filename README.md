@@ -1,6 +1,6 @@
 # Document Chat Interface
 
-This project provides a very simple interface for interacting with documents using various language models (LLMs). You can upload documents, ask questions about them, and receive answers along with the sources where the information was found. It uses [FastAPI](https://fastapi.tiangolo.com) to connect the browser to the backend which uses ([LlamaIndex](https://docs.llamaindex.ai/en/stable/) to read files, index them for high performance fact retreival, and provide an interface between the LLM.
+This project provides a very simple interface for interacting with documents using various language models (LLMs). You can upload documents, ask questions about them, and receive answers along with the sources where the information was found. It uses [FastAPI](https://fastapi.tiangolo.com) to connect the browser to the backend which uses [LlamaIndex](https://docs.llamaindex.ai/en/stable/) to read files, index them for high performance fact retreival, and provide an interface between the LLM.
 
 Features
 - It uses FastAPI and LlamaIndex, and runs in a web browser (using basic JavaScript forms)
