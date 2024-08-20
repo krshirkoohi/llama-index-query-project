@@ -14,8 +14,6 @@ This project provides a very simple interface for interacting with documents usi
 
 ### Future Work
 
-Future improvements may include better error handling for models that are not suited to document Q&A, as well as enhancements to the user interface and backend processing to support a wider variety of models and use cases.
-
 Some features planned:
 - Better UI (using bootstrap.css)
 - Store text files in an SQL database (for efficient CRUD, and options to protect sensitive documents)
