@@ -2,6 +2,8 @@
 
 This project provides a simple interface for interacting with documents using various language models (LLMs). You can upload documents, ask questions about them, and receive answers along with the sources where the information was found.
 
+images/llama-index-project-schematic.png
+
 ## Usage
 
 ### Dependencies
@@ -13,11 +15,11 @@ Please make sure you've installed the following dependencies in your execution e
 ### How to Run
 
 	1.	Run the Backend:
-	•	Execute main.py to start the FastAPI server on localhost using port 8000.
+	•	Execute `main.py` to start the FastAPI server on localhost using port 8000.
 	•	Use the following command to run the server:
-uvicorn main:app --host 127.0.0.0 --port 8000
+`uvicorn main:app --host 127.0.0.0 --port 8000`
 	2.	Open the UI:
-	•	Open main.html in your web browser. This HTML file will connect to the backend and provide a user interface for interacting with the system’s essential functions.
+	•	Open `main.html` in your web browser. This HTML file will connect to the backend and provide a user interface for interacting with the system’s essential functions.
 	•	The UI allows you to upload documents, ask questions, and see the results, including the sources of the answers.
 	3.	Interact with the Backend:
 	•	Once the HTML page is loaded in your browser, you can interact with the backend using the UI provided.
@@ -50,3 +52,7 @@ Note: Not all AI models are suited to this type of problem, and some may throw e
 ## Future Work
 
 Future improvements may include better error handling for models that are not suited to document Q&A, as well as enhancements to the user interface and backend processing to support a wider variety of models and use cases.
+
+## Attribution
+
+Created by Kavia Shirkoohi as a personal project. Please do not redistribute without permission.
