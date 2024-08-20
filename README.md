@@ -65,9 +65,9 @@ Some features planned:
 - Better UI (using bootstrap.css)
 - Support for more models i.e. Google Gemini using Google API key
 - Implement NoSQL db functionality using MongoDB to handle metadata of documents, so data can be fixed/corrected manually if incorrect during indexing
-- Protect prompt injection using LlamaProtect from META or similar technologies
+- Protect prompt injection using [LlamaGuard](https://about.fb.com/news/2023/12/purple-llama-safe-responsible-ai-development/) from META or similar technologies
 - Implement reference manager features for provenance of fact retreival i.e. Harvard referencing for sources instead of just file name
-- Build as a React.js app for containerability
+- Build as a [React.js](https://react.dev) app for containerability
 
 ## Attribution
 
