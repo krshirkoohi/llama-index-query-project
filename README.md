@@ -53,6 +53,12 @@ Note: Not all AI models are suited to this type of problem, and some may throw e
 
 Future improvements may include better error handling for models that are not suited to document Q&A, as well as enhancements to the user interface and backend processing to support a wider variety of models and use cases.
 
+Some features planned:
+- Better UI (using bootstrap.css)
+- Support for more models i.e. Google Gemini using Google API key
+- Protect prompt injection using LlamaProtect from META or similar technologies
+- Build as a React.js app for containerability
+
 ## Attribution
 
 Created by Kavia Shirkoohi as a personal project. Please do not redistribute without permission.
