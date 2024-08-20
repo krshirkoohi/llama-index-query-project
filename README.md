@@ -2,7 +2,7 @@
 
 This project provides a simple interface for interacting with documents using various language models (LLMs). You can upload documents, ask questions about them, and receive answers along with the sources where the information was found.
 
-images/llama-index-project-schematic.png
+![schematic of the app](images/llama-index-project-schematic.png)
 
 ## Usage
 
