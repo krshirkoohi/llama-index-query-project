@@ -2,6 +2,12 @@
 
 This project provides a simple interface for interacting with documents using various language models (LLMs). You can upload documents, ask questions about them, and receive answers along with the sources where the information was found. It uses FastAPI to connect the browser to the backend which uses LlamaIndex to read files, index them for high performance fact retreival, and provide an interface between the LLM.
 
+Features
+- It uses FastAPI and LlamaIndex, and runs in a web browser
+- Can handle multiple text (PDF) files at once and indexes them to a combined knowledgebase
+- Provides provenance of facts retrieved from data i.e. can point to _which_ file it drew facts from
+- Can select up to 5 different models, 4 hugging face, 1 open AI (built in API key functionality)
+
 ![schematic of the app](images/llama-index-project-schematic.png)
 
 ## Usage
@@ -56,7 +62,9 @@ Future improvements may include better error handling for models that are not su
 Some features planned:
 - Better UI (using bootstrap.css)
 - Support for more models i.e. Google Gemini using Google API key
+- Implement NoSQL db functionality using MongoDB to handle metadata of documents, so data can be fixed/corrected manually if incorrect during indexing
 - Protect prompt injection using LlamaProtect from META or similar technologies
+- Implement reference manager features for provenance of fact retreival i.e. Harvard referencing for sources instead of just file name
 - Build as a React.js app for containerability
 
 ## Attribution
