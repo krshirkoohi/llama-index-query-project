@@ -1,6 +1,6 @@
 # Document Chat Interface
 
-This project provides a simple interface for interacting with documents using various language models (LLMs). You can upload documents, ask questions about them, and receive answers along with the sources where the information was found.
+This project provides a simple interface for interacting with documents using various language models (LLMs). You can upload documents, ask questions about them, and receive answers along with the sources where the information was found. It uses FastAPI to connect the browser to the backend which uses LlamaIndex to read files, index them for high performance fact retreival, and provide an interface between the LLM.
 
 ![schematic of the app](images/llama-index-project-schematic.png)
 
