@@ -56,14 +56,13 @@ Please make sure you've installed the following dependencies in your execution e
 This key is required to access models hosted on Hugging Face.
 
 ### Switching Between LLMs
-
-- UI Dropdown Menu:
+UI Dropdown Menu:
 - You can switch between different language models using the dropdown menu in the user interface.
 - This allows you to dynamically choose the model that best suits your needs during your session.
-- Adding Future Models:
+Adding Future Models:
 - To add new models, simply update the selection menu in the HTML code (main.html). Add the model name as an option in the dropdown menu.
 - For example, add a new <option> tag with the value set to the name of the model.
-- Standalone Version:
+Standalone Version:
 - If desired, you can produce a standalone version of this app where the AI models are specified directly as strings representing their names on Hugging Face.
 
 Note: Not all AI models are suited to this type of problem, and some may throw errors or not work at all. Experiment with different models to find the best fit for your needs.
